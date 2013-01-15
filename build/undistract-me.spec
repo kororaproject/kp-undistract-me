@@ -5,7 +5,7 @@ Summary:        Alerts you when long-running commands finally complete.
 
 Group:          System Environment/Base
 License:        CC-BY-SA
-URL:            http://kororaproject.org
+URL:            https://launchpad.net/undistract-me
 Source0:        %{name}-%{version}.tar.gz
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch:      noarch
@@ -41,8 +41,8 @@ This is it!
 # nada
 
 %install
-profiledir=$RPM_BUILD_ROOT/etc/profile.d
-targetdir=$RPM_BUILD_ROOT/usr/share/undistract-me
+profiledir=$RPM_BUILD_ROOT/%{_sysconfdir}/profile.d
+targetdir=$RPM_BUILD_ROOT/%{_datadir}/undistract-me
 rm -rf $RPM_BUILD_ROOT
 install -d -m 0755 $profiledir
 install -d -m 0755 $targetdir
@@ -55,11 +55,11 @@ rm -rf $RPM_BUILD_ROOT
 
 %files
 %defattr(-,root,root,-)
-%dir /etc/profile.d
-%dir /usr/share/undistract-me
-/usr/share/undistract-me/LICENSE
-/usr/share/undistract-me/*.bash
-/etc/profile.d/undistract-me.sh
+%dir %{_sysconfdir}/profile.d
+%dir %{_datadir}/undistract-me
+%{_datadir}/undistract-me/LICENSE
+%{_datadir}/undistract-me/*.bash
+%{_sysconfdir}/profile.d/undistract-me.sh
 
 %changelog
 * Tue Jan 15 2013 Ian Firns <firnsy@kororaproject.org> - 12.1.3-1
