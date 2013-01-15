@@ -46,6 +46,7 @@ targetdir=$RPM_BUILD_ROOT/usr/share/undistract-me
 rm -rf $RPM_BUILD_ROOT
 install -d -m 0755 $profiledir
 install -d -m 0755 $targetdir
+install -m 0644 LICENSE $targetdir
 install -m 0644 *.bash $targetdir
 install -m 0644 undistract-me.sh $profiledir
 
@@ -54,9 +55,9 @@ rm -rf $RPM_BUILD_ROOT
 
 %files
 %defattr(-,root,root,-)
-%doc README
 %dir /etc/profile.d
 %dir /usr/share/undistract-me
+/usr/share/undistract-me/LICENSE
 /usr/share/undistract-me/*.bash
 /etc/profile.d/undistract-me.sh
 
