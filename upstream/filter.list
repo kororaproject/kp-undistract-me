@@ -1,0 +1,9 @@
+# Filter out the common command-line editors and viewers
+vi
+vim
+nano
+pico
+less
+
+# Filter out common command-line invoked GUI viewers
+eog
