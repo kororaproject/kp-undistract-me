@@ -77,12 +77,33 @@ function notify_when_long_running_commands_finish_install() {
             if [[ -n "$last_command_started" ]]; then
                 local now=$(date -u +%s)
                 local time_taken=$(( $now - $last_command_started ))
+
+                # check if notification timeout has been met
                 if [[ $time_taken -gt $LONG_RUNNING_COMMAND_TIMEOUT ]]; then
-                    notify-send \
-                        -i utilities-terminal \
-                        -u low \
-                        "Long command completed" \
-                        "\"$last_command\" took $time_taken seconds"
+                    # clear notification filter
+                    set -- $last_command
+                    _filter=0
+                    _filter_name=${1##*/}
+
+                    # ignore sudo invoked apps
+                    _filter_name=${_filter_name#sudo}
+
+                    # filter graphical applications (based on information in desktop files)
+                    test -d /usr/share/applications && grep -q "Exec=$_filter_name" /usr/share/applications/*.desktop && _filter=1
+
+                    # check for system-wide filter
+                    test -f /etc/undistract-me/filter.list && grep -q "^$_filter_name" /etc/undistract-me/filter.list && _filter=1
+
+                    # check for user-specific filters
+                    test -f ~/.config/undistract-me/filter.list && grep -q "^$_filter_name" ~/.config/undistract-me/filter.list && _filter=1
+
+                    if [[ $_filter -eq 0 ]]; then
+                        notify-send \
+                            -i utilities-terminal \
+                            -u low \
+                            "Long command completed" \
+                            "\"$last_command\" took $time_taken seconds"
+                    fi
                 fi
             fi
             # No command is running, so clear the cache.
