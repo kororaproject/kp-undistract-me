@@ -1,6 +1,6 @@
 Name:           undistract-me
 Version:        12.1.3
-Release:        3%{?dist}
+Release:        3%{?dist}.1
 Summary:        Alerts you when long-running commands finally complete.
 
 Group:          System Environment/Base
