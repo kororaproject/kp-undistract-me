@@ -1,6 +1,6 @@
 Name:           undistract-me
 Version:        12.1.3
-Release:        2%{?dist}.1
+Release:        3%{?dist}
 Summary:        Alerts you when long-running commands finally complete.
 
 Group:          System Environment/Base
@@ -67,7 +67,10 @@ rm -rf $RPM_BUILD_ROOT
 %config(noreplace) %{_sysconfdir}/undistract-me/filter.list
 
 %changelog
-* Tue Jan 15 2013 Ian Firns <firnsy@kororaproject.org> - 12.1.3-2
+* Wed Jan 30 2013 Ian Firns <firnsy@kororaproject.org> - 12.1.3-3
+- Tweaked output messaging to be less verbose.
+
+* Tue Jan 29 2013 Ian Firns <firnsy@kororaproject.org> - 12.1.3-2
 - Added system and user level filtering for commands that don't necessitate
 notification of completion.
 

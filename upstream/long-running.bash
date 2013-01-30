@@ -101,8 +101,7 @@ function notify_when_long_running_commands_finish_install() {
                         notify-send \
                             -i utilities-terminal \
                             -u low \
-                            "Long command completed" \
-                            "\"$last_command\" took $time_taken seconds"
+                            "Command completed \"$last_command\" took $time_taken seconds"
                     fi
                 fi
             fi
