@@ -1,6 +1,6 @@
 Name:           undistract-me
 Version:        12.1.3
-Release:        3%{?dist}.1
+Release:        3%{?dist}.2
 Summary:        Alerts you when long-running commands finally complete.
 
 Group:          System Environment/Base
@@ -9,6 +9,7 @@ URL:            https://launchpad.net/undistract-me
 Source0:        %{name}-%{version}.tar.gz
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 BuildArch:      noarch
+Requires:       libnotify
 
 %description
 Some commands take ages to run!
