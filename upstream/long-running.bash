@@ -103,7 +103,7 @@ function notify_when_long_running_commands_finish_install() {
                             -u low \
                             -h "int:transient:1" \
                             -t 120 \
-                            "Command completed \"$last_command\" took $time_taken seconds"
+                            "Completed \"${last_command}\" - ${time_taken}s"
                     fi
                 fi
             fi
