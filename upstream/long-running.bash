@@ -27,94 +27,82 @@ fi
 
 function notify_when_long_running_commands_finish_install() {
 
-    # TODO: Only notify if the shell doesn't have focus.  One way to do this
-    # is to contact Terminator with our unique id (stored in the environment
-    # as TERMINATOR_something_or_other) and ask it if we have focus.  Another
-    # way would be to use xprop to get the window ID and compare against
-    # $WINDOWID (or the PID & then process tree if necessary).  That will
-    # report false positives for tabbed terminals.
-
-    # A directory containing files for each currently running shell (not
-    # subshell), each named for their PID.  Each file is either empty,
-    # indicating that no command is running, or contains information about the
-    # currently running command for that shell.
-    local running_commands_dir=~/.cache/running-commands
-
-    mkdir -p $running_commands_dir
-
-    # Clear out any old PID files.  That is, any files named after a PID
-    # that's not currently running bash.
-    for pid_file in $running_commands_dir/*; do
-        local pid=$(basename $pid_file)
-        # If $pid is numeric, then check for a running bash process.
-        case $pid in
-        ''|*[!0-9]*) local numeric=0 ;;
-        *) local numeric=1 ;;
-        esac
-
-        if [[ $numeric -eq 1 ]]; then
-            local command=$(ps --no-headers -o command $pid)
-            if [[ $command != $BASH ]]; then
-                rm -f $pid_file
-            fi
+    function active_window_id () {
+        if [[ -n $DISPLAY ]] ; then
+            set - $(xprop -root _NET_ACTIVE_WINDOW)
+            echo $5
+            return
         fi
-    done
-    unset pid_file
+        echo nowindowid
+    }
 
-    # The file containing information about the currently running command for
-    # this shell.  Either empty (meaning no command is running) or in the
-    # format "$start_time\n$command", where $command is the currently running
-    # command and $start_time is when it started (in UNIX epoch format, UTC).
-    last_command_started_cache=$running_commands_dir/$$
+    function sec_to_human () {
+        local H=''
+        local M=''
+        local S=''
+
+        local h=$(($1 / 3600))
+        [ $h -gt 0 ] && H="${h} hour" && [ $h -gt 1 ] && H="${H}s"
+
+        local m=$((($1 / 60) % 60))
+        [ $m -gt 0 ] && M=" ${m} min" && [ $m -gt 1 ] && M="${M}s"
+
+        local s=$(($1 % 60))
+        [ $s -gt 0 ] && S=" ${s} sec" && [ $s -gt 1 ] && S="${S}s"
+
+        echo $H$M$S
+    }
 
     function precmd () {
 
-        if [[ -r $last_command_started_cache ]]; then
+        if [[ -n "$__udm_last_command_started" ]]; then
+            local now current_window
 
-            local last_command_started=$(head -1 $last_command_started_cache)
-            local last_command=$(tail -n +2 $last_command_started_cache)
-
-            if [[ -n "$last_command_started" ]]; then
-                local now=$(date -u +%s)
-                local time_taken=$(( $now - $last_command_started ))
-
-                # check if notification timeout has been met
-                if [[ $time_taken -gt $LONG_RUNNING_COMMAND_TIMEOUT ]]; then
-                    # clear notification filter
-                    set -- $last_command
-                    _filter=0
-                    _filter_name=${1##*/}
-
-                    # ignore sudo invoked apps
-                    _filter_name=${_filter_name#sudo}
-
-                    # filter graphical applications (based on information in desktop files)
-                    test -d /usr/share/applications && grep -q "Exec=$_filter_name" /usr/share/applications/*.desktop && _filter=1
-
-                    # check for system-wide filter
-                    test -f /etc/undistract-me/filter.list && grep -q "^$_filter_name" /etc/undistract-me/filter.list && _filter=1
-
-                    # check for user-specific filters
-                    test -f ~/.config/undistract-me/filter.list && grep -q "^$_filter_name" ~/.config/undistract-me/filter.list && _filter=1
-
-                    if [[ $_filter -eq 0 ]]; then
-                        notify-send \
-                            -i utilities-terminal \
-                            -u low \
-                            -h "int:transient:1" \
-                            -t 120 \
-                            "Completed \"${last_command}\" - ${time_taken}s"
+            printf -v now "%(%s)T" -1
+            current_window=$(active_window_id)
+            if [[ $current_window != $__udm_last_window ]] ||
+                [[ $current_window == "nowindowid" ]] ; then
+                local time_taken=$(( $now - $__udm_last_command_started ))
+                local time_taken_human=$(sec_to_human $time_taken)
+                local appname=$(basename "${__udm_last_command%% *}")
+                if [[ $time_taken -gt $LONG_RUNNING_COMMAND_TIMEOUT ]] &&
+                    [[ -n $DISPLAY ]] &&
+                    [[ ! " $LONG_RUNNING_IGNORE_LIST " == *" $appname "* ]] ; then
+                    local icon=dialog-information
+                    local urgency=low
+                    if [[ $__preexec_exit_status != 0 ]]; then
+                        icon=dialog-error
+                        urgency=normal
+                    fi
+                    notify=$(command -v notify-send)
+                    if [ -x "$notify" ]; then
+                        $notify \
+                        -i $icon \
+                        -u $urgency \
+                        "Completed" \
+                        "\"$__udm_last_command\" - $time_taken_human"
+                    else
+                        echo -ne "\a"
                     fi
                 fi
+                if [[ -n $LONG_RUNNING_COMMAND_CUSTOM_TIMEOUT ]] &&
+                    [[ -n $LONG_RUNNING_COMMAND_CUSTOM ]] &&
+                    [[ $time_taken -gt $LONG_RUNNING_COMMAND_CUSTOM_TIMEOUT ]] &&
+                    [[ ! " $LONG_RUNNING_IGNORE_LIST " == *" $appname "* ]] ; then
+                    # put in brackets to make it quiet
+                    export __preexec_exit_status
+                    ( $LONG_RUNNING_COMMAND_CUSTOM \
+                        "\"$__udm_last_command\" - $time_taken_human" & )
+                fi
             fi
-            # No command is running, so clear the cache.
-            echo -n > $last_command_started_cache
         fi
     }
 
     function preexec () {
-        date -u +%s > $last_command_started_cache
-        echo "$1" >> $last_command_started_cache
+        # use __udm to avoid global name conflicts
+        __udm_last_command_started=$(printf "%(%s)T\n" -1)
+        __udm_last_command=$(echo "$1")
+        __udm_last_window=$(active_window_id)
     }
 
     preexec_install
