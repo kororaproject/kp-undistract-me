@@ -1,6 +1,6 @@
 Name:           undistract-me
-Version:        12.1.3
-Release:        4%{?dist}.1
+Version:        12.1.4
+Release:        1%{?dist}
 Summary:        Alerts you when long-running commands finally complete.
 
 Group:          System Environment/Base
@@ -51,7 +51,7 @@ install -d -m 0755 $profiledir
 install -d -m 0755 $targetdir
 install -m 0644 LICENSE $targetdir
 install -m 0644 *.bash $targetdir
-install -m 0644 filter.list $filterdir
+install -m 0644 ignore $filterdir
 install -m 0644 undistract-me.sh $profiledir
 
 %clean
@@ -65,10 +65,13 @@ rm -rf $RPM_BUILD_ROOT
 %{_datadir}/undistract-me/LICENSE
 %{_datadir}/undistract-me/*.bash
 %{_sysconfdir}/profile.d/undistract-me.sh
-%config(noreplace) %{_sysconfdir}/undistract-me/filter.list
+%config(noreplace) %{_sysconfdir}/undistract-me/ignore
 
 %changelog
-* Tue Apr 30 2013 Ian Firns <firnsy@kororaproject.org> - 12.1.4-4
+* Mon Sep 9 2013 Ian Firns <firnsy@kororaproject.org> - 12.1.4-1
+- Merged upstream changes and added pre-population of LONG_COMMAND_IGNORE_LIST when invoking
+
+* Tue Apr 30 2013 Ian Firns <firnsy@kororaproject.org> - 12.1.3-4
 - Tweaked output messaging to be even less verbose.
 
 * Wed Jan 30 2013 Ian Firns <firnsy@kororaproject.org> - 12.1.3-3
