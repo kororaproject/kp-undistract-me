@@ -1,5 +1,5 @@
 Name:           undistract-me
-Version:        12.1.4
+Version:        14.6
 Release:        1%{?dist}
 Summary:        Alerts you when long-running commands finally complete.
 
@@ -68,6 +68,9 @@ rm -rf $RPM_BUILD_ROOT
 %config(noreplace) %{_sysconfdir}/undistract-me/ignore
 
 %changelog
+* Sat Jul 26 2014 Ian Firns <firnsy@kororaproject.org> - 12.1.4-1
+- Merged upstream changes.
+
 * Mon Sep 9 2013 Ian Firns <firnsy@kororaproject.org> - 12.1.4-1
 - Merged upstream changes and added pre-population of LONG_COMMAND_IGNORE_LIST when invoking
 
